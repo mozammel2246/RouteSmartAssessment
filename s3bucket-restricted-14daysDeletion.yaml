@@ -1,0 +1,38 @@
+Parameters:
+  BucketName:
+    Type: String
+    Description: This bucket will not be accessible for specific IPs and object will expire after 14 days
+    Default: restricted-14days-expiration
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpirationRule
+            Prefix: ""
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 14
+            Status: Enabled
+
+
+  SampleBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketName
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:*'
+            Effect: Allow
+            Principal: '*'
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref BucketName
+                - /*
+            Condition:
+              NotIpAddress:
+                aws:SourceIp: '71.114.32.219'
